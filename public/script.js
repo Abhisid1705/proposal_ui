@@ -72,10 +72,7 @@ function toggleUserDropdown() {
 }
 async function navigateTo(page) {
     try {
-        const response = await fetch(page);
-        const content = await response.text();
-        document.getElementById('contentContainer').innerHTML = content;
-        executeScripts(content);
+        window.location.href=page;
     } catch (error) {
         console.error('Error loading page:', error);
     }
