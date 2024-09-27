@@ -8,25 +8,40 @@ async function toggleNotifications() {
     }
 }
 
+
 async function fetchNotifications() {
     try {
-        const response = await fetch('/notification', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ read: 0 })
-        });
+        const userId=localStorage.getItem('logedinuserid');
+        const response = await fetchWithToken(`http://localhost:8081/notifications/user/${userId}/read/0`)
         const notifications = await response.json();
         const notificationList = document.getElementById('notifications');
+        const notificationBell = document.querySelector('.notification-bell');
         notificationList.innerHTML = '';
+
+        let hasUnread = false;
         notifications.forEach(notification => {
             const li = document.createElement('li');
             li.textContent = notification.message;
+            li.dataset.id=notification.notification_id;
             notificationList.appendChild(li);
+
+            if (!notification.read) {
+                hasUnread = true;
+            }
+        });
+
+        if (hasUnread) {
+            notificationBell.classList.add('unread');
+        } else {
+            notificationBell.classList.remove('unread');
+        }
+        notificationList.addEventListener('click', (event) => {
+            if (event.target.tagName === 'LI') {
+                markRead(event.target.dataset.id, userId);
+            }
         });
     } catch (error) {
-        console.error('Error fetching notifications:', error);
+        console.error(error);
     }
 }
 
@@ -56,10 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadNotificationPanel();
 });
 
-function handleCreateProposal(event) {
-    event.preventDefault();
-    // Handle form submission logic here
-}
+
 
 function toggleUserDropdown() {
     const assigneeSelect = document.getElementById('assignee');
@@ -113,3 +125,23 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSidePanel();
     loadNotificationPanel();
 });
+async function fetchWithToken(url, options = {}) {
+    const token = localStorage.getItem('token');
+
+    return fetch(url, {
+        ...options,
+        headers: {
+            ...options.headers,
+            'Authorization': `Bearer ${token}`
+        }
+    });
+}
+async function markRead(id,userid){
+    const response = await fetchWithToken(`http://localhost:8081/notifications/${id}/user/${userid}/read/1`)
+}
+function logout() {
+    // Clear the user session
+    localStorage.removeItem('logedinuserid');
+    // Redirect to index.html
+    window.location.href = 'index.html';
+}

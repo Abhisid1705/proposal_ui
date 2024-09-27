@@ -65,7 +65,7 @@
             width: 90%;
         }
         .task {
-            background-color: #fff;
+            background-color: #3498db;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -87,6 +87,7 @@
 </head>
 <body>
     <div id="sidePanelContainer"></div>
+    <div id="notificationPanelContainer"></div>
 
     <div class="container">
         <h2>Contributed Proposals</h2>
@@ -94,6 +95,7 @@
             <!-- Tasks will be dynamically inserted here -->
         </div>
     </div>
+    <div id="notificationPanelContainer"></div>
 
     <script>
         async function loadSidePanel() {
@@ -106,29 +108,44 @@
             }
         }
 
-        function loadContributedTasks() {
+        async function loadContributedTasks() {
             const urlParams = new URLSearchParams(window.location.search);
-            const users = urlParams.get('users').split(', ');
-            const task = {
-                title: 'Proposal Title',
-                clientName: 'Client Name',
-                description: 'Proposal Description',
-                dueDate: '2023-12-01',
-                budget: 1000,
-                priority: 'High',
-                assignee: 'User 1'
-            };
+            const taskid = urlParams.get('taskid');
+            const response = await fetchWithToken(`http://localhost:8081/proposals/${taskid}`)
+            const task = await response.json();
+            const users=task.contributors;
+            const useraResponse = await fetchWithToken('http://localhost:8081/users/all');
+            const usera=await useraResponse.json();
+            const userMap = new Map();
+
+             usera.forEach(user => {
+                userMap.set(user.id, user);
+            });
 
             const taskList = document.getElementById('taskList');
-            users.forEach(user => {
+            users.forEach(userid => {
                 const taskDiv = document.createElement('div');
                 taskDiv.className = 'task';
                 taskDiv.innerHTML = `
-                    <h3>${task.title}</h3>
+                    <h3>${task.proposalTitle}</h3>
                     <p><strong>Client:</strong> ${task.clientName}</p>
-                    <p><strong>Contributed By:</strong> ${user}</p>
+                    <p><strong>Contributed By:</strong> ${userMap.get(userid).username}</p>
                 `;
-                taskDiv.onclick = () => window.location.href = `submitted-file.html?user=${user}`;
+                taskDiv.onclick = () => fetchWithToken(`http://localhost:8081/files/task/${taskid}/user/${userid}`)
+    .then(response => {
+        const contentDisposition = response.headers.get('Content-Disposition');
+        const filename = contentDisposition.split('filename=')[1].replace(/"/g, '');
+        return response.blob().then(blob => ({blob, filename}));
+    })
+    .then(({blob, filename}) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    });
                 taskList.appendChild(taskDiv);
             });
         }
@@ -139,5 +156,7 @@
             loadContributedTasks();
         });
     </script>
+        <script src="/public/script.js"></script>
+
 </body>
 </html>

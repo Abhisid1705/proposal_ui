@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Task</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
+   <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -92,26 +92,102 @@
             <input type="number" name="budget" placeholder="Budget" required>
             <select name="priority" required>
                 <option value="" disabled selected>Priority</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option value="0">Low</option>
+                <option value="1">Medium</option>
+                <option value="2">High</option>
             </select>
-            <select name="assignee" id="assignee" required onchange="toggleUserDropdown()">
-                <option value="" disabled selected>Assign to</option>
+            <select name="assignee" id="assignee" required onchange="toggleUserDropdown()" multiple>
                 <option value="all">Assign to all</option>
-                <option value="specific">Assign to specific user</option>
             </select>
-            <select name="specificUser" id="specificUser" class="hidden">
-                <option value="" disabled selected>Select User</option>
-                <!-- Add options dynamically or statically here -->
-                <option value="user1">User 1</option>
-                <option value="user2">User 2</option>
-                <option value="user3">User 3</option>
-            </select>
+            
             <button type="submit">Create Proposal</button>
         </form>
     </div>
     <div id="notificationPanelContainer"></div>
+    <script src="/public/script.js"></script>
+    <script>
+        function handleCreateProposal(event) {
+            event.preventDefault();
+            const assigneeSelect = event.target.assignee;
+             let assignees = [];
+
+           for (let i = 0; i < assigneeSelect.options.length; i++) {
+             if (assigneeSelect.options[i].selected) {
+            assignees.push(assigneeSelect.options[i].value);
+            }
+          }
+
+          if (assignees.length === 1 && assignees[0] === "all") {
+            let users = JSON.parse(localStorage.getItem('users'));
+            assignees=[];
+            users.forEach(user=>{
+                assignees.push(user.id);
+            })
+        }
+            // Handle form submission logic here
+            // Send a POST request to the /create-task API endpoint
+            fetchWithToken('http://localhost:8081/proposals/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            
+            body: JSON.stringify({
+                proposalTitle: event.target.proposalTitle.value,
+                clientName: event.target.clientName.value,
+                proposalDescription: event.target.proposalDescription.value,
+                dueDate: event.target.dueDate.value,
+                budget: event.target.budget.value,
+                priority: event.target.priority.value,
+                assignee: assignees,
+                createdBy:localStorage.getItem('logedinuserid')
+            })
+            })
+            .then(response => {
+            if (response.ok) {
+                // Show success alert
+                alert('Task created successfully!');
+            } else {
+                // Show error alert
+                alert('Failed to create task. Please try again.');
+            }
+            })
+            .catch(error => {
+            console.error('Error:', error);
+            // Show error alert
+            alert('An error occurred. Please try again later.');
+            });
+        }
+        async function populateUserDropdown() {
+    try {
+        const response = await fetchWithToken('http://localhost:8081/users/all');
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch users');
+        }
+
+        const users = await response.json();
+        const selectElement = document.getElementById('assignee');
+        const loggedInUserId = localStorage.getItem('logedinuserid');
+        localStorage.setItem('users',JSON.stringify(users));
+        users.forEach(user => {
+            if(user.id!=loggedInUserId){
+            const optionElement = document.createElement('option');
+            optionElement.value = user.id; // Replace 'userId' with the actual key for the user ID
+            optionElement.textContent = user.username; // Replace 'username' with the actual key for the username
+            selectElement.appendChild(optionElement);
+            }
+        });
+
+        selectElement.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// Call the function when the page loads
+window.onload = populateUserDropdown;
+    </script>
     <script src="/public/script.js"></script>
 
 </body>

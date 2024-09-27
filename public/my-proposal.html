@@ -65,7 +65,7 @@
             width: 90%;
         }
         .task {
-            background-color: #fff;
+            background-color: #3498db;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -156,6 +156,7 @@
 </head>
 <body>
     <div id="sidePanelContainer"></div>
+    <div id="notificationPanelContainer"></div>
 
     <div class="container">
         <h2>My Proposals</h2>
@@ -176,6 +177,7 @@
                     <p id="taskBudget"></p>
                     <p id="taskPriority"></p>
                     <p id="taskAssignee"></p>
+                    <p id="id" style="display: none;" ></p>
                     <div id="taskContributors">
                         <h4>Contributed By:</h4>
                         <ul id="contributorList"></ul>
@@ -202,43 +204,46 @@
             }
         }
 
-        function loadDummyTasks() {
-            const tasks = [
-                { title: 'Proposal 1', clientName: 'Client A', description: 'Description for Proposal 1', dueDate: '2023-12-01', budget: 1000, priority: 'High', assignee: 'User 1', contributors: ['User 2', 'User 3'] },
-                { title: 'Proposal 2', clientName: 'Client B', description: 'Description for Proposal 2', dueDate: '2023-12-02', budget: 2000, priority: 'Medium', assignee: 'User 2', contributors: ['User 1'] },
-                { title: 'Proposal 3', clientName: 'Client C', description: 'Description for Proposal 3', dueDate: '2023-12-03', budget: 3000, priority: 'Low', assignee: 'User 3', contributors: ['User 1', 'User 2'] }
-            ];
-
+        async function loadTasks() {
+            try {
+            const userId = localStorage.getItem('logedinuserid');
+            const response = await fetchWithToken(`http://localhost:8081/proposals/my-proposal/${userId}`);
+            const tasks = await response.json();
             const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
             tasks.forEach(task => {
                 const taskDiv = document.createElement('div');
                 taskDiv.className = 'task';
                 taskDiv.innerHTML = `
-                    <h3>${task.title}</h3>
-                    <p><strong>Client:</strong> ${task.clientName}</p>
+                <h3>${task.proposalTitle}</h3>
+                <p><strong>Client:</strong> ${task.clientName}</p>
                 `;
                 taskDiv.onclick = () => openModal(task);
                 taskList.appendChild(taskDiv);
             });
+            } catch (error) {
+            console.error('Error loading tasks:', error);
+            }
         }
-
+     
         function openModal(task) {
-            document.getElementById('taskTitle').innerText = task.title;
+            document.getElementById('taskTitle').innerText = task.proposalTitle;
             document.getElementById('taskClientName').innerText = task.clientName;
-            document.getElementById('taskDescription').innerText = task.description;
+            document.getElementById('taskDescription').innerText = task.proposalDescription;
             document.getElementById('taskDueDate').innerText = `Due Date: ${task.dueDate}`;
             document.getElementById('taskBudget').innerText = `Budget: $${task.budget}`;
             document.getElementById('taskPriority').innerText = `Priority: ${task.priority}`;
             document.getElementById('taskAssignee').innerText = `Assignee: ${task.assignee}`;
-
+            document.getElementById("id").innerText=task.id;
+            if(task.contributors){
             const contributorList = document.getElementById('contributorList');
             contributorList.innerHTML = '';
             const contributors = task.contributors.join(', ');
             const anchor = document.createElement('a');
-            anchor.href = `contributed.html?users=${encodeURIComponent(contributors)}`;
+            anchor.href = `contributed.html?taskid=${task.id}`;
             anchor.innerText = `${task.contributors.length} users`;
             contributorList.appendChild(anchor);
-
+            }
             document.getElementById('taskModal').style.display = 'block';
         }
 
@@ -248,12 +253,18 @@
 
         async function handleFormSubmit(event) {
             event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            formData.append('taskId', document.getElementById('taskTitle').innerText);
+            const form = document.querySelector('form');
+           const fileInput = form.querySelector('input[type="file"]');
+           const formData = new FormData();
+
+           if (fileInput.files.length > 0) {
+              formData.append(fileInput.name, fileInput.files[0]);
+            }
+            formData.append('taskId', document.getElementById('id').innerText);
+            formData.append('userId', localStorage.getItem('logedinuserid'));
 
             try {
-                const response = await fetch('/tasks/upload-response', {
+                const response = await fetchWithToken('http://localhost:8081/files/upload', {
                     method: 'POST',
                     body: formData
                 });
@@ -266,6 +277,7 @@
                     console.error('Response upload failed');
                 }
             } catch (error) {
+                alert("File exists");
                 console.error('Error:', error);
             }
         }
@@ -273,8 +285,10 @@
         // Load the side panel and dummy tasks on initial load
         document.addEventListener('DOMContentLoaded', () => {
             loadSidePanel();
-            loadDummyTasks();
+            loadTasks();
         });
     </script>
+    <script src="/public/script.js"></script>
+
 </body>
 </html>

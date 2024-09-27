@@ -65,7 +65,7 @@
             width: 90%;
         }
         .task {
-            background-color: #fff;
+            background-color: #3498db;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -156,9 +156,10 @@
 </head>
 <body>
     <div id="sidePanelContainer"></div>
+    <div id="notificationPanelContainer"></div>
 
     <div class="container">
-        <h2>Your Tasks</h2>
+        <h2>My  Contributions</h2>
         <div class="task-list" id="taskList">
             <!-- Tasks will be dynamically inserted here -->
         </div>
@@ -176,6 +177,7 @@
                     <p id="taskBudget"></p>
                     <p id="taskPriority"></p>
                     <p id="taskAssignee"></p>
+                    <p id="id" style="display: none;" ></p>
                 </div>
                 <div class="modal-footer">
                     <form id="uploadForm" onsubmit="handleFormSubmit(event)">
@@ -198,25 +200,23 @@
             }
         }
 
-        function loadDummyTasks() {
-            const tasks = [
-                { title: 'Task 1', clientName: 'Client A', description: 'Description for Task 1', dueDate: '2023-12-01', budget: 1000, priority: 'High', assignee: 'User 1' },
-                { title: 'Task 2', clientName: 'Client B', description: 'Description for Task 2', dueDate: '2023-12-02', budget: 2000, priority: 'Medium', assignee: 'User 2' },
-                { title: 'Task 3', clientName: 'Client C', description: 'Description for Task 3', dueDate: '2023-12-03', budget: 3000, priority: 'Low', assignee: 'User 3' },
-                { title: 'Task 3', clientName: 'Client C', description: 'Description for Task 3', dueDate: '2023-12-03', budget: 3000, priority: 'Low', assignee: 'User 3' }
-                ,{ title: 'Task 3', clientName: 'Client C', description: 'Description for Task 3', dueDate: '2023-12-03', budget: 3000, priority: 'Low', assignee: 'User 3' }
-                ,                { title: 'Task 3', clientName: 'Client C', description: 'Description for Task 3', dueDate: '2023-12-03', budget: 3000, priority: 'Low', assignee: 'User 3' }
-,                { title: 'Task 3', clientName: 'Client C', description: 'Description for Task 3', dueDate: '2023-12-03', budget: 3000, priority: 'Low', assignee: 'User 3' }
-
-            ];
-
+        async function loadDummyTasks() {
+            const userId = localStorage.getItem('logedinuserid');
+            const response = await fetchWithToken(`http://localhost:8081/proposals/user/${userId}`);
+            const tasks = await response.json();
+            const map =new Map();
+            const users =JSON.parse(localStorage.getItem('users'));
+            users.forEach(user=>{
+                map.set(user.id,user.username);
+            })
             const taskList = document.getElementById('taskList');
             tasks.forEach(task => {
                 const taskDiv = document.createElement('div');
                 taskDiv.className = 'task';
                 taskDiv.innerHTML = `
-                    <h3>${task.title}</h3>
+                    <h3>${task.proposalTitle}</h3>
                     <p><strong>Client:</strong> ${task.clientName}</p>
+                    <p><strong>Cordinator:</strong> ${map.get(task.createdBy)}</p>
                 `;
                 taskDiv.onclick = () => openModal(task);
                 taskList.appendChild(taskDiv);
@@ -224,13 +224,14 @@
         }
 
         function openModal(task) {
-            document.getElementById('taskTitle').innerText = task.title;
+            document.getElementById('taskTitle').innerText = task.proposalTitle;
             document.getElementById('taskClientName').innerText = task.clientName;
-            document.getElementById('taskDescription').innerText = task.description;
+            document.getElementById('taskDescription').innerText = task.proposalDescription;
             document.getElementById('taskDueDate').innerText = `Due Date: ${task.dueDate}`;
             document.getElementById('taskBudget').innerText = `Budget: $${task.budget}`;
-            document.getElementById('taskPriority').innerText = `Priority: ${task.priority}`;
+            document.getElementById('taskPriority').innerText = `Priority: ${task.priority==0?"Low":task.priority==1?"Medium":"High"}`;
             document.getElementById('taskAssignee').innerText = `Assignee: ${task.assignee}`;
+            document.getElementById("id").innerText=task.id;
             document.getElementById('taskModal').style.display = 'block';
         }
 
@@ -240,12 +241,18 @@
 
         async function handleFormSubmit(event) {
             event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            formData.append('taskId', document.getElementById('taskTitle').innerText);
+            const form = document.querySelector('form');
+           const fileInput = form.querySelector('input[type="file"]');
+           const formData = new FormData();
+
+           if (fileInput.files.length > 0) {
+              formData.append(fileInput.name, fileInput.files[0]);
+            }
+            formData.append('taskId', document.getElementById('id').innerText);
+            formData.append('userId', localStorage.getItem('logedinuserid'));
 
             try {
-                const response = await fetch('/tasks/upload-response', {
+                const response = await fetchWithToken('http://localhost:8081/files/upload', {
                     method: 'POST',
                     body: formData
                 });
@@ -258,6 +265,7 @@
                     console.error('Response upload failed');
                 }
             } catch (error) {
+                alert("File exists");
                 console.error('Error:', error);
             }
         }

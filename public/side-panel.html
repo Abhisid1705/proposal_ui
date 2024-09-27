@@ -1,16 +1,20 @@
 <!-- side-panel.html -->
+
 <div class="side-panel">
     <a href="#" onclick="navigateTo('/public/your-task.html')">
         <i class="fas fa-tasks"></i>
-        <span>Your tasks</span>
+        <span>My Contributions</span>
     </a>
     <a href="#" onclick="navigateTo('/public/create-task.html')">
         <i class="fas fa-plus-circle"></i>
-        <span>Create task</span>
+        <span>Create Proposal</span>
     </a>
     <a href="my-proposal.html"><i class="fas fa-file-alt"></i> My Proposals</a>
 
 </div>
+<button id="logoutButton" onclick="logout()" style="position: absolute; bottom: 10px;">Logout</button>
+
+
 <style>
     .side-panel {
         background-color: #2c3e50; /* Dark blue color */
@@ -42,5 +46,29 @@
     .side-panel i {
         margin-right: 10px;
     }
+    #logoutButton {
+    background-color: #e74c3c; /* Red color */
+    color: white;
+    border: none;
+    padding: 10px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box; /* Add this line */
+
+}
+
+#logoutButton:hover {
+    background-color: #c0392b; /* Darker red color */
+}
+
+#logoutButton i {
+    margin-right: 5px;
+}
+    
 </style>
 <script src="/public/script.js"></script>
