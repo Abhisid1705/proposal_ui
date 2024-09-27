@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contributed Proposals</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9; /* Professional light gray background */
+        }
+        .side-panel {
+            background-color: #2c3e50; /* Dark blue color */
+            width: 60px;
+            height: 100%;
+            transition: width 0.3s;
+            overflow: hidden;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+        }
+        .side-panel:hover {
+            width: 200px;
+        }
+        .side-panel a {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            color: white;
+            text-decoration: none;
+            white-space: nowrap;
+            width: 100%;
+        }
+        .side-panel a:hover {
+            background-color: #34495e; /* Slightly lighter dark blue on hover */
+        }
+        .side-panel i {
+            margin-right: 10px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: calc(100% - 80px); /* Adjusted to account for the side panel */
+            height: 100%;
+            margin-left: 80px; /* Adjusted to account for the side panel */
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .task-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px; /* Reasonable distance between tasks */
+            justify-items: center;
+            margin-top: 20px;
+            width: 90%;
+        }
+        .task {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 200px;
+            height: 200px; /* Make it square */
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .task h3 {
+            margin: 0 0 10px 0;
+        }
+        .task p {
+            margin: 0;
+        }
+        .task:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div id="sidePanelContainer"></div>
+
+    <div class="container">
+        <h2>Contributed Proposals</h2>
+        <div class="task-list" id="taskList">
+            <!-- Tasks will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script>
+        async function loadSidePanel() {
+            try {
+                const response = await fetch('/public/side-panel.html');
+                const content = await response.text();
+                document.getElementById('sidePanelContainer').innerHTML = content;
+            } catch (error) {
+                console.error('Error loading side panel:', error);
+            }
+        }
+
+        function loadContributedTasks() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const users = urlParams.get('users').split(', ');
+            const task = {
+                title: 'Proposal Title',
+                clientName: 'Client Name',
+                description: 'Proposal Description',
+                dueDate: '2023-12-01',
+                budget: 1000,
+                priority: 'High',
+                assignee: 'User 1'
+            };
+
+            const taskList = document.getElementById('taskList');
+            users.forEach(user => {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'task';
+                taskDiv.innerHTML = `
+                    <h3>${task.title}</h3>
+                    <p><strong>Client:</strong> ${task.clientName}</p>
+                    <p><strong>Contributed By:</strong> ${user}</p>
+                `;
+                taskDiv.onclick = () => window.location.href = `submitted-file.html?user=${user}`;
+                taskList.appendChild(taskDiv);
+            });
+        }
+
+        // Load the side panel and contributed tasks on initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSidePanel();
+            loadContributedTasks();
+        });
+    </script>
+</body>
+</html>
