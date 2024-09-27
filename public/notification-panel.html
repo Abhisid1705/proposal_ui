@@ -1,0 +1,74 @@
+<!-- notification-panel.html -->
+<div class="notification-panel">
+    <i class="fas fa-bell notification-bell" onclick="toggleNotifications()"></i>
+    <div class="notification-list" id="notificationList">
+        <ul id="notifications"></ul>
+    </div>
+</div>
+<script>
+    async function toggleNotifications() {
+        const notificationList = document.getElementById('notificationList');
+        if (notificationList.style.display === 'none' || notificationList.style.display === '') {
+            notificationList.style.display = 'block';
+            await fetchNotifications();
+        } else {
+            notificationList.style.display = 'none';
+        }
+    }
+
+    async function fetchNotifications() {
+        try {
+            const response = await fetch('/notification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ read: 0 })
+            });
+            const notifications = await response.json();
+            const notificationList = document.getElementById('notifications');
+            notificationList.innerHTML = '';
+            notifications.forEach(notification => {
+                const li = document.createElement('li');
+                li.textContent = notification.message;
+                notificationList.appendChild(li);
+            });
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    }
+</script>
+<style>
+    .notification-bell {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        cursor: pointer;
+    }
+    .notification-list {
+        display: none;
+        position: absolute;
+        top: 60px;
+        right: 20px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 300px;
+        max-height: 400px;
+        overflow-y: auto;
+        z-index: 1000;
+    }
+    .notification-list ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .notification-list li {
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+    }
+    .notification-list li:last-child {
+        border-bottom: none;
+    }
+</style>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9; /* Professional light gray background */
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: calc(100% - 220px); /* Adjusted to account for the side panel */
+            height: 100%;
+            margin-left: 220px; /* Adjusted to account for the side panel */
+            overflow-y: auto;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidePanelContainer"></div>
+    <div class="container">
+        <h1>Welcome to KPMG Proposal Draft Form</h1>
+        <p>Have a nice day!</p>
+    </div>
+    <div id="notificationPanelContainer"></div>
+    <script src="/public/script.js"></script>
+
+</body>
+</html>

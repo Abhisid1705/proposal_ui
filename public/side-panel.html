@@ -1,0 +1,43 @@
+<!-- side-panel.html -->
+<div class="side-panel">
+    <a href="#" onclick="navigateTo('/public/your-task.html')">
+        <i class="fas fa-tasks"></i>
+        <span>Your tasks</span>
+    </a>
+    <a href="#" onclick="navigateTo('/public/create-task.html')">
+        <i class="fas fa-plus-circle"></i>
+        <span>Create task</span>
+    </a>
+</div>
+<style>
+    .side-panel {
+        background-color: #2c3e50; /* Dark blue color */
+        width: 60px;
+        height: 100%;
+        transition: width 0.3s;
+        overflow: hidden;
+        position: fixed;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 20px;
+    }
+    .side-panel:hover {
+        width: 200px;
+    }
+    .side-panel a {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        color: white;
+        text-decoration: none;
+        white-space: nowrap;
+        width: 100%;
+    }
+    .side-panel a:hover {
+        background-color: #34495e; /* Slightly lighter dark blue on hover */
+    }
+    .side-panel i {
+        margin-right: 10px;
+    }
+</style>
