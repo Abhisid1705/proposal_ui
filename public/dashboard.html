@@ -31,11 +31,19 @@
 <body>
     <div id="sidePanelContainer"></div>
     <div class="container">
-        <h1>Welcome to KPMG Proposal Draft Form</h1>
+        <p id="user-info"></p>
+        <h1>Welcome to KPMG Proposal Draft Form </h1>
         <p>Have a nice day!</p>
     </div>
     <div id="notificationPanelContainer"></div>
     <script src="/public/script.js"></script>
 
 </body>
+<script>
+        let storedUser = localStorage.getItem("username");
+        document.getElementById("user-info").textContent = `Hi ${storedUser}
+        
+        `;
+        
+</script>
 </html>

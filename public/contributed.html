@@ -138,17 +138,9 @@
         <p><strong>Contributed By:</strong> ${userMap.get(userid).username}</p>
         <button class="finalise">Finalise</button>
     `;
-    taskDiv.querySelector('.finalise').onclick = async () => {
-        if (confirm('Are you sure?')) {
-            try {
-                const response = await fetchWithToken(`http://localhost:8081/proposals/task/${task.id}/finalise`, { method: 'GET' });
-                if (!response.ok) throw new Error('Error finalising task');
-                alert('Task finalised successfully');
-            } catch (error) {
-                console.error('Error finalising task:', error);
-            }
-        }
-    };
+    if(task.status===userid){
+        taskDiv.style.backgroundColor="#008000"
+    }
     taskDiv.onclick = () => fetchWithToken(`http://localhost:8081/files/task/${taskid}/user/${userid}`)
         .then(response => {
             const contentDisposition = response.headers.get('Content-Disposition');
@@ -157,8 +149,24 @@
         })
         .then(({blob, filename}) => {
             const url = window.URL.createObjectURL(blob);
-            // Rest of your code...
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         });
+    taskDiv.querySelector('.finalise').onclick = async () => {
+        if (confirm('Are you sure?')) {
+            try {
+                const response = await fetchWithToken(`http://localhost:8081/proposals/task/${task.id}/finalise/${userid}`, { method: 'GET' });
+                if (!response.ok) throw new Error('Error finalising task');
+                alert('Task finalised successfully');
+            } catch (error) {
+                console.error('Error finalising task:', error);
+            }
+        }
+    };
     taskList.appendChild(taskDiv);
 });
         }

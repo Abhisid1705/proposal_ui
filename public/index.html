@@ -165,7 +165,8 @@
         }
 
         const userDetails = await response.json();
-        localStorage.setItem('logedinuserid', userDetails.id); // Store the userId
+        localStorage.setItem('logedinuserid', userDetails.id);
+        localStorage.setItem('username',userDetails.username); // Store the userId
     } catch (error) {
         console.error('Error:', error);
     }
